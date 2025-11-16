@@ -3,7 +3,7 @@ Service for extracting and managing ComfyScript enums.
 """
 
 import logging
-from enum import EnumMeta
+from enum import Enum
 from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class EnumService:
             attr = getattr(nodes_module, attr_name)
 
             # Check if it's an enum class
-            if isinstance(attr, type) and issubclass(attr, type(EnumMeta)):
+            if isinstance(attr, type) and issubclass(attr, Enum):
                 try:
                     # Get enum values
                     values = [item.value if hasattr(item, 'value') else str(item) for item in attr]

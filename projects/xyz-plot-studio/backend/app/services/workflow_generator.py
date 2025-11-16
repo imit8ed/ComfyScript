@@ -3,6 +3,7 @@ Service for generating ComfyScript workflows from parameter definitions.
 """
 
 import logging
+import random
 from typing import Any, Dict, List, Tuple
 
 from app.models.schemas import ParameterGrid, WorkflowConfig, WorkflowTemplate

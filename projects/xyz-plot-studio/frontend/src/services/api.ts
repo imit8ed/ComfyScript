@@ -95,7 +95,16 @@ class APIClient {
   // WebSocket
   createWebSocket(experimentId: string): WebSocket {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const wsUrl = `${protocol}//${window.location.host}/ws/experiments/${experimentId}`
+    const baseURL = this.client.defaults.baseURL ?? ''
+    const basePath = baseURL.startsWith('http')
+      ? new URL(baseURL).pathname
+      : baseURL
+    const normalizedBasePath = basePath.endsWith('/')
+      ? basePath.slice(0, -1)
+      : basePath
+    const wsPath = `${normalizedBasePath}/ws/experiments/${experimentId}`
+    const prefixedPath = wsPath.startsWith('/') ? wsPath : `/${wsPath}`
+    const wsUrl = `${protocol}//${window.location.host}${prefixedPath}`
     return new WebSocket(wsUrl)
   }
 }
