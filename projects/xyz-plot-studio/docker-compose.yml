@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - COMFYUI_URL=http://comfyui:8188
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:////app/data/xyz_studio.db
+      - OUTPUT_DIR=/app/data/outputs
+      - UPLOAD_DIR=/app/data/uploads
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/app:/app/app:ro
+    depends_on:
+      - redis
+      - comfyui
+    networks:
+      - xyz-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - xyz-network
+    restart: unless-stopped
+
+  # Redis (for Celery task queue)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - xyz-network
+    restart: unless-stopped
+
+  # ComfyUI (connect to existing or use this)
+  comfyui:
+    image: comfyui/comfyui:latest
+    ports:
+      - "8188:8188"
+    volumes:
+      - comfyui-models:/app/models
+      - comfyui-output:/app/output
+    networks:
+      - xyz-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  redis-data:
+  comfyui-models:
+  comfyui-output:
+
+networks:
+  xyz-network:
+    driver: bridge
